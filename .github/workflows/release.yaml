@@ -1,0 +1,69 @@
+name: OS-Nerdicon Release
+
+on:
+    release:
+        types: [created]
+
+jobs:
+    build-multiarch:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                include:
+                    - arch: x86
+                      zig_target: x86-linux-gnu
+                      cc: gcc -m32
+                      cc_pkg: gcc-multilib
+                    - arch: amd64
+                      zig_target: x86_64-linux-gnu
+                      cc: gcc
+                      cc_pkg: gcc
+                    - arch: arm
+                      zig_target: arm-linux-gnueabihf
+                      cc: arm-linux-gnueabihf-gcc
+                      cc_pkg: gcc-arm-linux-gnueabihf
+                    - arch: aarch64
+                      zig_target: aarch64-linux-gnu
+                      cc: aarch64-linux-gnu-gcc
+                      cc_pkg: gcc-aarch64-linux-gnu
+        steps:
+            - uses: actions/checkout@v4
+            - name: Install Zig
+              run: |
+                  curl -fsSL https://ziglang.org/download/0.15.2/zig-x86_64-linux-0.15.2.tar.xz | tar -xJ -C /opt
+                  echo "/opt/zig-x86_64-linux-0.15.2" >> $GITHUB_PATH
+
+            - name: Install cross-compiler
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y ${{ matrix.cc_pkg }}
+            - name: Build
+              run: make all ZIG_FLAGS="-dynamic -O ReleaseSafe -target ${{ matrix.zig_target }}" CC="${{ matrix.cc }}"
+            - name: Package
+              run: |
+                  mkdir -p dist
+                  zip -r dist/osnerdicon-${{ matrix.arch }}.zip build include install.sh uninstall.sh manifest.txt
+            - name: Upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dist-${{ matrix.arch }}
+                  path: dist/osnerdicon-${{ matrix.arch }}.zip
+                  retention-days: 1
+
+    release:
+        needs: build-multiarch
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - name: Download artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  pattern: dist-*
+                  path: dist
+                  merge-multiple: true
+            - name: Publish release
+              run: gh release upload ${{ github.event.release.tag_name }} dist/*.zip --clobber
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  GH_REPO: ${{ github.repository }}

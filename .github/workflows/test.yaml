@@ -1,0 +1,50 @@
+name: OS-Nerdicon Icon Test
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Install Zig
+              run: |
+                  curl -fsSL https://ziglang.org/download/0.15.2/zig-x86_64-linux-0.15.2.tar.xz | tar -xJ -C /opt
+                  echo /opt/zig-x86_64-linux-0.15.2 >> $GITHUB_PATH
+            - name: Compile
+              run: make all ZIG_FLAGS="-dynamic -O ReleaseSafe -target x86_64-linux -mcpu=baseline"
+            - name: Upload
+              uses: actions/upload-artifact@v4
+              with:
+                  name: build-artifacts
+                  path: |
+                      ${{ github.workspace }}/build/libosnerdicon.so
+                      ${{ github.workspace }}/build/osnerdicon
+                  retention-days: 1
+
+    test:
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Download artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: build-artifacts
+                  path: ${{ github.workspace }}/build
+            - name: Test icon
+              run: |
+                  echo $(ls $GITHUB_WORKSPACE/build)
+                  chmod +x $GITHUB_WORKSPACE/build/osnerdicon
+                  EXPECTED=""
+                  ACTUAL=$(LD_LIBRARY_PATH=$GITHUB_WORKSPACE/build $GITHUB_WORKSPACE/build/osnerdicon)
+                  if [ "$ACTUAL" != "$EXPECTED" ]; then
+                      echo "Expected: $EXPECTED"
+                      echo "Actual: $ACTUAL"
+                      exit 1
+                  fi

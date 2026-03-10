@@ -1,0 +1,4 @@
+/usr/bin/osnerdicon
+/usr/lib/libosnerdicon.so
+/usr/include/osnerdicon.h
+/usr/share/osnerdicon/
