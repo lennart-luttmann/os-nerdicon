@@ -49,10 +49,13 @@ pub const icon_map = _fn: {
 /// Returns the corresponding icon for the used distribution.
 pub fn getIcon() [*:0]const u8 {
 
+    // Init global io.
+    const io = std.Io.Threaded.global_single_threaded.io();
+
     // Init file reader.
     const file = _fn: {
         for (OS_RELEASE_PATHS) |release_path| {
-            const f = std.fs.cwd().openFile(release_path, .{ .mode = .read_only }) catch {
+            const f = std.Io.Dir.cwd().openFile(io, release_path, .{ .mode = .read_only }) catch {
                 std.log.debug("Could not find release file at [{s}]", .{release_path});
                 continue;
             };
@@ -63,9 +66,9 @@ pub fn getIcon() [*:0]const u8 {
         std.log.warn("Could not find any os release file. Using default.", .{});
         return default_icon;
     };
-    defer file.close();
+    defer file.close(io);
     var reader_scratch_buffer: [4096]u8 = undefined;
-    var reader = file.reader(&reader_scratch_buffer);
+    var reader = file.reader(io, &reader_scratch_buffer);
 
     // Retrieve id from os release.
     var icon_buffer: ?[*:0]const u8 = null;
