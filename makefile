@@ -1,7 +1,7 @@
 
 # -- project --
 NAME=osnerdicon
-VERSION=1.0.0
+VERSION=1.1.0
 PROJECT_ROOT = $(shell pwd)
 
 # -- directories -- 
