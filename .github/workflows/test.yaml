@@ -15,8 +15,8 @@ jobs:
             - uses: actions/checkout@v4
             - name: Install Zig
               run: |
-                  curl -fsSL https://ziglang.org/download/0.15.2/zig-x86_64-linux-0.15.2.tar.xz | tar -xJ -C /opt
-                  echo /opt/zig-x86_64-linux-0.15.2 >> $GITHUB_PATH
+                  curl -fsSL https://ziglang.org/download/0.17.0/zig-x86_64-linux-0.17.0.tar.xz | tar -xJ -C /opt
+                  echo /opt/zig-x86_64-linux-0.17.0 >> $GITHUB_PATH
             - name: Compile
               run: make all ZIG_FLAGS="-dynamic -O ReleaseSafe -target x86_64-linux -mcpu=baseline"
             - name: Upload

@@ -31,7 +31,7 @@ The library current supports 32 different icons.
 | Arch Linux               | arch          | ` ` |
 | Archcraft                | archcraft     | ` ` |
 | Artix                    | artix         | ` ` |
-| Cachy OS                 | cachyos       | `󰭛 ` |
+| Cachy OS                 | cachyos       | ` ` |
 | Centos                   | centos        | ` ` |
 | Debian                   | debian        | ` ` |
 | Deepin OS                | deepin        | ` ` |
